@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../loblstm/.idea/loblstm.iml" filepath="$PROJECT_DIR$/../loblstm/.idea/loblstm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/orderbook_rebuild.iml" filepath="$PROJECT_DIR$/.idea/orderbook_rebuild.iml" />
+    </modules>
+  </component>
+</project>
