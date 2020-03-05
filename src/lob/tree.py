@@ -62,6 +62,7 @@ class Tree(object):
         self.volume += order.qty
 
     def update_order(self, tick):
+        print('kausy update')
         order = self.order_map[tick.id_num]
         original_volume = order.qty
         if tick.price != order.price:
@@ -78,10 +79,12 @@ class Tree(object):
             self.volume += order.qty - original_volume
 
     def remove_order_by_id(self, id_num):
+        print('kausy')
         order = self.order_map[id_num]
         self.volume -= order.qty
         order.order_list.remove_order(order)
         if len(order.order_list) == 0:
+            print(str(len(order.order_list)) + str(id_num))
             self.remove_price(order.price)
         del self.order_map[id_num]
 

@@ -6,6 +6,7 @@ from src.lob.tick import Bid, Ask, Trade
 from src.lob.tree import Tree
 from builtins import input
 from six.moves import cStringIO as StringIO
+from datetime import datetime
 
 def parse_csv(columns, line):
     """
@@ -25,7 +26,7 @@ class Book(object):
         self.bids = Tree()
         self.asks = Tree()
         self.last_tick = None
-        self.last_timestamp = 0
+        self.last_timestamp = datetime(1950, 1, 1, 12, 00)
 
     def process_bid_ask(self, tick):
         """
@@ -80,7 +81,7 @@ class Book(object):
         self.process_bid_ask(ask)
         return ask
 
-    def ask_split(self, symbol, id_num, qty, price, timestamp): 
+    def ask_split(self,  symbol, id_num, qty, price, timestamp):
         data = {
             'Timestamp': timestamp,
             'Quantity': qty,
@@ -106,7 +107,7 @@ class Book(object):
         self.trades.appendleft(trade)
         return trade
 
-    def trade_split(self, symbol, qty, price, timestamp):
+    def trade_split(self, symbol, id_num, qty, price, timestamp):
         data = {
             'Timestamp': timestamp,
             'Quantity': qty,
@@ -138,7 +139,7 @@ class Book(object):
             for entry in self.trades:
                 if num < 5:
                     file_str.write(str(entry.qty) + " @ " \
-                                   + str(entry.price / 10000) \
+                                   + str(entry.price) \
                                    + " (" + str(entry.timestamp) + ")\n")
                     num += 1
                 else:

@@ -38,4 +38,4 @@ class Order(object):
         return self.tick.is_bid
 
     def __str__(self):
-        return "%s\t@\t%.4f" % (self.qty, self.price / float(10000))
+        return "%s\t@\t%.4f" % (self.qty, self.price)
