@@ -34,8 +34,12 @@ class Order(object):
         return self.tick.price
 
     @property
+    def timestamp(self):
+        return self.tick.timestamp
+
+    @property
     def is_bid(self):
         return self.tick.is_bid
 
     def __str__(self):
-        return "%s\t@\t%.4f" % (self.qty, self.price)
+        return "%s\t|\t%s\t@\t%.4f\t|\t%s" % (self.id_num, self.qty, self.price, self.timestamp)

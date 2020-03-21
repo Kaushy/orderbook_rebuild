@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
+import config
+import numpy as np
 from collections import deque
-
 from src.lob.tick import Bid, Ask, Trade
 from src.lob.tree import Tree
-from builtins import input
 from six.moves import cStringIO as StringIO
 from datetime import datetime
+
 
 def parse_csv(columns, line):
     """
@@ -20,6 +21,7 @@ def parse_csv(columns, line):
         data[name] = split[idx]
     return data
 
+
 class Book(object):
     def __init__(self):
         self.trades = deque(maxlen=100)  # Index [0] is most recent trade
@@ -27,25 +29,27 @@ class Book(object):
         self.asks = Tree()
         self.last_tick = None
         self.last_timestamp = datetime(1950, 1, 1, 12, 00)
+        self.ob_state = np.array([[np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
+                                  [np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
+                                  [np.zeros(config.ob_depth), np.zeros(config.ob_depth)]], np.float)
 
-    def process_bid_ask(self, tick):
+    def process_bid_ask(self, tick, action):
         """
         Generic method to process bid or ask.
         """
         tree = self.asks
         if tick.is_bid:
             tree = self.bids
-        if tick.qty == 0:
-            # Quantity is zero -> remove the entry
+
+        if action in config.add:
+            tree.insert_tick(tick)
+        elif action in config.delete:
             tree.remove_order_by_id(tick.id_num)
-        else:
+        elif action in config.update:
             if tree.order_exists(tick.id_num):
                 tree.update_order(tick)
-            else:
-                # New order
-                tree.insert_tick(tick)
 
-    def bid(self, csv):
+    def bid_as(self, csv):
         columns = ['Date', 'Timestamp', 'OrderNumber', 'EventType', 'Ticker',
                    'Price', 'Quantity', 'MPID', 'Exchange']
         data = parse_csv(columns, csv)
@@ -56,7 +60,7 @@ class Book(object):
         self.process_bid_ask(bid)
         return bid
 
-    def bid_split(self, symbol, id_num, qty, price, timestamp):
+    def bid_split(self, symbol, id_num, qty, price, timestamp, action):
         data = {
             'Timestamp': timestamp,
             'Quantity': qty,
@@ -67,10 +71,10 @@ class Book(object):
         if bid.timestamp > self.last_timestamp:
             self.last_timestamp = bid.timestamp
         self.last_tick = bid
-        self.process_bid_ask(bid)
+        self.process_bid_ask(bid, action)
         return bid
 
-    def ask(self, csv): 
+    def ask_as(self, csv):
         columns = ['Date', 'Timestamp', 'OrderNumber', 'EventType', 'Ticker',
                    'Price', 'Quantity', 'MPID', 'Exchange']
         data = parse_csv(columns, csv)
@@ -81,7 +85,7 @@ class Book(object):
         self.process_bid_ask(ask)
         return ask
 
-    def ask_split(self,  symbol, id_num, qty, price, timestamp):
+    def ask_split(self, symbol, id_num, qty, price, timestamp, action):
         data = {
             'Timestamp': timestamp,
             'Quantity': qty,
@@ -92,12 +96,12 @@ class Book(object):
         if ask.timestamp > self.last_timestamp:
             self.last_timestamp = ask.timestamp
         self.last_tick = ask
-        self.process_bid_ask(ask)
+        self.process_bid_ask(ask, action)
         return ask
 
-    def trade(self, csv):
+    def trade_as(self, csv):
         columns = ['Date', 'Timestamp', 'OrderNumber', 'EventType', 'Ticker',
-                   'Price', 'Quantity', 'MPID', 'Exchange'] 
+                   'Price', 'Quantity', 'MPID', 'Exchange']
         data = parse_csv(columns, csv)
         data['id_num'] = 0
         trade = Trade(data)
@@ -114,7 +118,7 @@ class Book(object):
             'Price': price,
             'OrderNumber': id_num
         }
-        
+
         trade = Trade(data)
         if trade.timestamp > self.last_timestamp:
             self.last_timestamp = trade.timestamp
@@ -122,19 +126,40 @@ class Book(object):
         self.trades.appendleft(trade)
         return trade
 
+    def store_lob_matrix(self):
+        if self.bids is not None and len(self.bids) > 0:
+            count = 0
+            for k, v in self.bids.price_tree.items(reverse=True):
+                if count <= config.ob_depth - 1:
+                    if v.length > 0:
+                        for order in v:
+                            self.ob_state[0][0][count] = k
+                            self.ob_state[1][0][count] = order.tick.qty
+                            self.ob_state[2][0][count] = order.tick.id_num
+                            count += 1
+        if self.asks is not None and len(self.asks) > 0:
+            count = 0
+            for k, v in self.asks.price_tree.items():
+                if count <= config.ob_depth - 1:
+                    self.ob_state[0][1][count] = k
+                    self.ob_state[1][1][count] = v.volume
+                count += 1
+
     def __str__(self):
         # Efficient string concat
         file_str = StringIO()
         file_str.write("------ Bids -------\n")
-        if self.bids != None and len(self.bids) > 0:
+        if self.bids is not None and len(self.bids) > 0:
+            count = 0
             for k, v in self.bids.price_tree.items(reverse=True):
                 file_str.write('%s' % v)
+                count += 1
         file_str.write("\n------ Asks -------\n")
-        if self.asks != None and len(self.asks) > 0:
+        if self.asks is not None and len(self.asks) > 0:
             for k, v in self.asks.price_tree.items():
                 file_str.write('%s' % v)
         file_str.write("\n------ Trades ------\n")
-        if self.trades != None and len(self.trades) > 0:
+        if self.trades is not None and len(self.trades) > 0:
             num = 0
             for entry in self.trades:
                 if num < 5:
