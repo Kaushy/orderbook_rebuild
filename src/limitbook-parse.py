@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import numpy as np
 import sys
 from src.lob.book import Book
 import config
@@ -7,9 +8,9 @@ import csv
 import src.utils as utils
 
 
-test_data = config.test_data / "test_data_parse.csv"
+test_data = config.test_data / "test_matrix.csv"
 test_abeo = config.test_data / "ABEO_Small.csv"
-real_data = config.full_depth_folder / 'ABEO.csv'
+real_data = config.full_depth_folder / 'GOOG.csv'
 
 def algoseekdata():
     with open(test_data) as csvfile:
@@ -45,9 +46,9 @@ def algoseekdata():
                     order_book.bid_split(row[4], row[2], row[6], row[5], timestamp, row[3])
                 elif row[3] in ['ADD ASK', 'EXECUTE ASK', 'CANCEL ASK', 'FILL ASK', 'DELETE ASK']:
                     order_book.ask_split(row[4], row[2], row[6], row[5], timestamp, row[3])
-                print(row[8])
-                print(order_book)
-                order_book.store_lob_matrix()
+
+                ob_state = order_book.store_lob_matrix()
+                #np.save(config.output_path, ob_state)
         except IOError:
             print('Cannot open input file "%s"' % sys.argv[1])
             sys.exit(1)

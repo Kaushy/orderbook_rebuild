@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from lob.book import Book
+from src.lob.book import Book
 
 class ResearchBook(Book):
     def __init__(self):

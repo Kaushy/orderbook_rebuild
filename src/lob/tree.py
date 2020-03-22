@@ -80,7 +80,6 @@ class Tree(object):
         self.volume -= order.qty
         order.order_list.remove_order(order)
         if len(order.order_list) == 0:
-            print(str(len(order.order_list)) + str(id_num))
             self.remove_price(order.price)
         del self.order_map[id_num]
 

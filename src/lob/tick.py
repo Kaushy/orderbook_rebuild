@@ -3,7 +3,6 @@
 
 class Tick(object):
     def __init__(self, data):
-        print(data)
         self.timestamp = data['Timestamp']
         # self.sequence = 0
         self.qty = int(data['Quantity'])

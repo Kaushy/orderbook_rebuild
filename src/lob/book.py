@@ -2,12 +2,12 @@
 
 import config
 import numpy as np
+import pickle
 from collections import deque
+from datetime import datetime
 from src.lob.tick import Bid, Ask, Trade
 from src.lob.tree import Tree
 from six.moves import cStringIO as StringIO
-from datetime import datetime
-
 
 def parse_csv(columns, line):
     """
@@ -28,10 +28,11 @@ class Book(object):
         self.bids = Tree()
         self.asks = Tree()
         self.last_tick = None
-        self.last_timestamp = datetime(1950, 1, 1, 12, 00)
+        self.last_timestamp = datetime(1950, 1, 1, 12, 0, 0, 000000)
+            #np.datetime64('1950-1-1T12:00')
         self.ob_state = np.array([[np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
-                                  [np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
-                                  [np.zeros(config.ob_depth), np.zeros(config.ob_depth)]], np.float)
+                                                        [np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
+                                                        [np.zeros(config.ob_depth), np.zeros(config.ob_depth)]], np.float)
 
     def process_bid_ask(self, tick, action):
         """
@@ -130,20 +131,33 @@ class Book(object):
         if self.bids is not None and len(self.bids) > 0:
             count = 0
             for k, v in self.bids.price_tree.items(reverse=True):
-                if count <= config.ob_depth - 1:
-                    if v.length > 0:
-                        for order in v:
-                            self.ob_state[0][0][count] = k
-                            self.ob_state[1][0][count] = order.tick.qty
-                            self.ob_state[2][0][count] = order.tick.id_num
-                            count += 1
+                if v.head_order is None:
+                    return
+                else:
+                    n = v.head_order
+                    while n is not None and count <= config.ob_depth - 1:
+                        self.ob_state[0][0][count] = k
+                        self.ob_state[1][0][count] = n.qty
+                        self.ob_state[2][0][count] = n.id_num
+                        # self.ob_state[3][0][count] = n.timestamp
+                        n = n.next_order
+                        count += 1
         if self.asks is not None and len(self.asks) > 0:
             count = 0
             for k, v in self.asks.price_tree.items():
-                if count <= config.ob_depth - 1:
-                    self.ob_state[0][1][count] = k
-                    self.ob_state[1][1][count] = v.volume
-                count += 1
+                if v.head_order is None:
+                    return
+                else:
+                    n = v.head_order
+                    while n is not None and count <= config.ob_depth - 1:
+                        self.ob_state[0][1][count] = k
+                        self.ob_state[1][1][count] = n.qty
+                        self.ob_state[2][1][count] = n.id_num
+                        # self.ob_state[3][1][count] = n.timestamp
+                        n = n.next_order
+                        count += 1
+        return self.ob_state
+
 
     def __str__(self):
         # Efficient string concat

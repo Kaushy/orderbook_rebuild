@@ -2,6 +2,7 @@
 
 from src.lob.order import Order
 
+
 class OrderList(object):
     def __init__(self):
         self.head_order = None
@@ -25,7 +26,7 @@ class OrderList(object):
             self.last = self.last.next_order
             return return_val
 
-    __next__ = next # Python 3.x compatibility
+    __next__ = next  # Python 3.x compatibility
 
     def append_order(self, order):
         """
@@ -66,7 +67,6 @@ class OrderList(object):
 
     def move_tail(self, order):
         if order.prev_order != None:
-            print(order)
             order.prev_order.next_order = self.next_order
         else:
             # Update the head order
