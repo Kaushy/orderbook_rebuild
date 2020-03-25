@@ -1,8 +1,14 @@
 from pathlib import Path
 
-full_depth_folder = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/full_depth/20160901/')
-test_data = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/test_files/')
-output_path = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/output')
+# SOURCE Data
+source_algoseek = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/full_depth/')
+
+# DESTINATION
+destination_exchange = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/symbol_exchange/')
+destination_matrix = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/output')
+
+# TEST
+test_source_algoseek = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/test_files/')
 
 add = ['ADD BID', 'ADD ASK']
 delete = ['DELETE BID', 'DELETE ASK', 'FILL BID', 'FILL ASK']
