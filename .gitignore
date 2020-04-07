@@ -1,4 +1,6 @@
-data/*
+data/input/*
+data/output/*
+data/raw/*
 .idea/
 __pycache__
 venv/*
