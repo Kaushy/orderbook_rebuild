@@ -9,6 +9,7 @@ from src.lob.tick import Bid, Ask, Trade
 from src.lob.tree import Tree
 from six.moves import cStringIO as StringIO
 
+
 def parse_csv(columns, line):
     """
     Parse a CSV line that has ',' as a separator.
@@ -29,10 +30,14 @@ class Book(object):
         self.asks = Tree()
         self.last_tick = None
         self.last_timestamp = datetime(1950, 1, 1, 12, 0, 0, 000000)
-            #np.datetime64('1950-1-1T12:00')
-        self.ob_state = np.array([[np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
-                                                        [np.zeros(config.ob_depth), np.zeros(config.ob_depth)],
-                                                        [np.zeros(config.ob_depth), np.zeros(config.ob_depth)]], np.float)
+        self.ob_state = np.array([(np.datetime64('1970-01-01'),
+                                   np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='float64'),
+                                   np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='uint64'),
+                                   np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='uint64'),
+                                   np.array([np.empty(config.ob_depth, dtype='<M8[us]'),
+                                             np.empty(config.ob_depth, dtype='<M8[us]')]))],
+                                 dtype=[('index', 'datetime64[us]'), ('price', 'object'), ('quantity', 'object'),
+                                        ('order_id', 'object'), ('timestamp', 'object')])
 
     def process_bid_ask(self, tick, action):
         """
@@ -136,10 +141,11 @@ class Book(object):
                 else:
                     n = v.head_order
                     while n is not None and count <= config.ob_depth - 1:
-                        self.ob_state[0][0][count] = k
-                        self.ob_state[1][0][count] = n.qty
-                        self.ob_state[2][0][count] = n.id_num
-                        # self.ob_state[3][0][count] = n.timestamp
+                        self.ob_state[0][0] = self.last_timestamp
+                        self.ob_state[0][1][0][count] = k
+                        self.ob_state[0][2][0][count] = n.qty
+                        self.ob_state[0][3][0][count] = n.id_num
+                        self.ob_state[0][4][0][count] = n.timestamp
                         n = n.next_order
                         count += 1
         if self.asks is not None and len(self.asks) > 0:
@@ -150,14 +156,14 @@ class Book(object):
                 else:
                     n = v.head_order
                     while n is not None and count <= config.ob_depth - 1:
-                        self.ob_state[0][1][count] = k
-                        self.ob_state[1][1][count] = n.qty
-                        self.ob_state[2][1][count] = n.id_num
-                        # self.ob_state[3][1][count] = n.timestamp
+                        self.ob_state[0][0] = self.last_timestamp
+                        self.ob_state[0][1][1][count] = k
+                        self.ob_state[0][2][1][count] = n.qty
+                        self.ob_state[0][3][1][count] = n.id_num
+                        self.ob_state[0][4][1][count] = n.timestamp
                         n = n.next_order
                         count += 1
         return self.ob_state
-
 
     def __str__(self):
         # Efficient string concat

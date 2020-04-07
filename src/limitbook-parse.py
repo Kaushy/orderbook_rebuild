@@ -3,6 +3,7 @@
 import numpy as np
 import config
 import csv
+import copy
 import errno
 import os
 import pandas as pd
@@ -44,20 +45,18 @@ def convertTuple(tup):
     return str(tup_str) + '.csv'
 
 
-def algoseekdata():
+def algoseekdata(source, destination_matrix):
     """
-
+    order_book is of type Book() and holds book data. ob_state is a specific state
     """
-    # You have to loop through each folder and get data for each date
-    # split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
-
-    for subdir, dirs, files in os.walk(config.destination_exchange):
+    for subdir, dirs, files in os.walk(source):
         for file in files:
             data_path = os.path.join(subdir, file)
             with open(data_path) as csv_file:
                 reader = csv.reader(csv_file, delimiter=',')
+                print(data_path)
                 order_book = Book()
-                ob_state_list = []
+                ob_state_list = []  # List of matrices per time point for order book state changes
                 try:
                     next(reader)
                     for row in reader:
@@ -67,9 +66,9 @@ def algoseekdata():
                         elif row[3] in ['ADD ASK', 'EXECUTE ASK', 'CANCEL ASK', 'FILL ASK', 'DELETE ASK']:
                             order_book.ask_split(row[4], row[2], row[6], row[5], timestamp, row[3])
 
-                        ob_state = order_book.store_lob_matrix()
+                        ob_state = copy.deepcopy(order_book.store_lob_matrix())
                         ob_state_list.append(ob_state)
-                    file_name = config.destination_matrix / pathlib.PurePath(os.path.normpath(data_path)).parent.name / \
+                    file_name = destination_matrix / pathlib.PurePath(os.path.normpath(data_path)).parent.name / \
                                 os.path.splitext(pathlib.PurePath(data_path).name)[0]
                     make_dir(file_name)
                     np.save(file_name, ob_state_list)
@@ -79,5 +78,6 @@ def algoseekdata():
 
 
 if __name__ == '__main__':
-    algoseekdata()
-# split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
+    # split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
+     algoseekdata(config.test_source_exchange, config.test_destination_matrix)
+    # algoseekdata(config.source_exchange, config.destination_matrix)
