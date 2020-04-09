@@ -62,9 +62,11 @@ def algoseekdata(source, destination_matrix):
                     for row in reader:
                         timestamp = utils.convert_datetime(row[0], row[1])
                         if row[3] in ['ADD BID', 'EXECUTE BID', 'CANCEL BID', 'FILL BID', 'DELETE BID']:
-                            order_book.bid_split(row[4], row[2], row[6], row[5], timestamp, row[3])
+                            order_book.bid_split(row[4], row[2], row[6], row[5], timestamp,
+                                                 config.algoseek_dict.get(row[3]), row[7], row[3])
                         elif row[3] in ['ADD ASK', 'EXECUTE ASK', 'CANCEL ASK', 'FILL ASK', 'DELETE ASK']:
-                            order_book.ask_split(row[4], row[2], row[6], row[5], timestamp, row[3])
+                            order_book.ask_split(row[4], row[2], row[6], row[5], timestamp,
+                                                 config.algoseek_dict.get(row[3]), row[7], row[3])
 
                         ob_state = copy.deepcopy(order_book.store_lob_matrix())
                         ob_state_list.append(ob_state)
@@ -79,5 +81,5 @@ def algoseekdata(source, destination_matrix):
 
 if __name__ == '__main__':
     # split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
-     algoseekdata(config.test_source_exchange, config.test_destination_matrix)
-    # algoseekdata(config.source_exchange, config.destination_matrix)
+    # algoseekdata(config.test_source_exchange, config.test_destination_matrix)
+     algoseekdata(config.source_exchange, config.destination_matrix)

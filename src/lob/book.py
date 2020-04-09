@@ -29,15 +29,20 @@ class Book(object):
         self.bids = Tree()
         self.asks = Tree()
         self.last_tick = None
-        self.last_timestamp = datetime(1950, 1, 1, 12, 0, 0, 000000)
+        self.last_timestamp = datetime(1970, 1, 1, 12, 0, 0, 000000)
+        self.action = 0
         self.ob_state = np.array([(np.datetime64('1970-01-01'),
                                    np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='float64'),
                                    np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='uint64'),
                                    np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='uint64'),
                                    np.array([np.empty(config.ob_depth, dtype='<M8[us]'),
-                                             np.empty(config.ob_depth, dtype='<M8[us]')]))],
+                                             np.empty(config.ob_depth, dtype='<M8[us]')]),
+                                   np.array([np.empty(config.ob_depth), np.empty(config.ob_depth)], dtype='object'),
+                                   np.array([np.empty(1, dtype='uint64'),
+                                             np.empty(1, dtype='uint64')]))],
                                  dtype=[('index', 'datetime64[us]'), ('price', 'object'), ('quantity', 'object'),
-                                        ('order_id', 'object'), ('timestamp', 'object')])
+                                        ('order_id', 'object'), ('timestamp', 'object'), ('participant', 'object'),
+                                        ('action', 'object')])
 
     def process_bid_ask(self, tick, action):
         """
@@ -62,22 +67,26 @@ class Book(object):
         bid = Bid(data)
         if bid.timestamp > self.last_timestamp:
             self.last_timestamp = bid.timestamp
+            self.action = bid.action
         self.last_tick = bid
         self.process_bid_ask(bid)
         return bid
 
-    def bid_split(self, symbol, id_num, qty, price, timestamp, action):
+    def bid_split(self, symbol, id_num, qty, price, timestamp, action, participant, action_words):
         data = {
             'Timestamp': timestamp,
             'Quantity': qty,
             'Price': price,
-            'OrderNumber': id_num
+            'OrderNumber': id_num,
+            'EventType': action,
+            'Participant': participant
         }
         bid = Bid(data)
         if bid.timestamp > self.last_timestamp:
             self.last_timestamp = bid.timestamp
+            self.action = bid.action
         self.last_tick = bid
-        self.process_bid_ask(bid, action)
+        self.process_bid_ask(bid, action_words)
         return bid
 
     def ask_as(self, csv):
@@ -87,22 +96,26 @@ class Book(object):
         ask = Ask(data)
         if ask.timestamp > self.last_timestamp:
             self.last_timestamp = ask.timestamp
+            self.action = ask.action
         self.last_tick = ask
         self.process_bid_ask(ask)
         return ask
 
-    def ask_split(self, symbol, id_num, qty, price, timestamp, action):
+    def ask_split(self, symbol, id_num, qty, price, timestamp, action, participant, action_words):
         data = {
             'Timestamp': timestamp,
             'Quantity': qty,
             'Price': price,
-            'OrderNumber': id_num
+            'OrderNumber': id_num,
+            'EventType': action,
+            'Participant': participant
         }
         ask = Ask(data)
         if ask.timestamp > self.last_timestamp:
             self.last_timestamp = ask.timestamp
+            self.action = ask.action
         self.last_tick = ask
-        self.process_bid_ask(ask, action)
+        self.process_bid_ask(ask, action_words)
         return ask
 
     def trade_as(self, csv):
@@ -146,6 +159,8 @@ class Book(object):
                         self.ob_state[0][2][0][count] = n.qty
                         self.ob_state[0][3][0][count] = n.id_num
                         self.ob_state[0][4][0][count] = n.timestamp
+                        self.ob_state[0][5][0][count] = n.participant
+                        self.ob_state[0][6][0] = self.action
                         n = n.next_order
                         count += 1
         if self.asks is not None and len(self.asks) > 0:
@@ -161,6 +176,8 @@ class Book(object):
                         self.ob_state[0][2][1][count] = n.qty
                         self.ob_state[0][3][1][count] = n.id_num
                         self.ob_state[0][4][1][count] = n.timestamp
+                        self.ob_state[0][5][1][count] = n.participant
+                        self.ob_state[0][6][1] = self.action
                         n = n.next_order
                         count += 1
         return self.ob_state

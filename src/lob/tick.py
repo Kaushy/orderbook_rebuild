@@ -4,12 +4,11 @@
 class Tick(object):
     def __init__(self, data):
         self.timestamp = data['Timestamp']
-        # self.sequence = 0
         self.qty = int(data['Quantity'])
         self.price = float(data['Price'])
         self.id_num = data['OrderNumber']
-        # self.participant_id = F.participant_id
-        # self.client_id = F.client_id
+        self.action = data['EventType']
+        self.participant = data['Participant']
 
 
 class Trade(Tick):

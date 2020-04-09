@@ -38,6 +38,14 @@ class Order(object):
         return self.tick.timestamp
 
     @property
+    def action(self):
+        return self.tick.action
+
+    @property
+    def participant(self):
+        return self.tick.participant
+
+    @property
     def is_bid(self):
         return self.tick.is_bid
 
