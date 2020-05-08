@@ -68,7 +68,7 @@ def algoseekdata(source, destination_matrix):
                             order_book.ask_split(row[4], row[2], row[6], row[5], timestamp,
                                                  config.algoseek_dict.get(row[3]), row[7], row[3])
 
-                        ob_state = copy.deepcopy(order_book.store_lob_matrix())
+                        ob_state = copy.deepcopy(order_book.store_lob_matrix)
                         ob_state_list.append(ob_state)
                     file_name = destination_matrix / pathlib.PurePath(os.path.normpath(data_path)).parent.name / \
                                 os.path.splitext(pathlib.PurePath(data_path).name)[0]
@@ -81,5 +81,6 @@ def algoseekdata(source, destination_matrix):
 
 if __name__ == '__main__':
     # split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
-    # algoseekdata(config.test_source_exchange, config.test_destination_matrix)
-     algoseekdata(config.source_exchange, config.destination_matrix)
+   #  algoseekdata(config.test_source_exchange, config.test_destination_matrix)
+    # You have to split this more exchange specific as well as not all exchanges obey same rules
+   algoseekdata(config.source_exchange, config.destination_matrix)

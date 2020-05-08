@@ -1,4 +1,5 @@
 data/input/*
+data/future_input/*
 data/output/*
 data/raw/*
 .idea/

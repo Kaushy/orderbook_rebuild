@@ -31,18 +31,7 @@ class Book(object):
         self.last_tick = None
         self.last_timestamp = datetime(1970, 1, 1, 12, 0, 0, 000000)
         self.action = 0
-        self.ob_state = np.array([(np.datetime64('1970-01-01'),
-                                   np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='float64'),
-                                   np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='uint64'),
-                                   np.array([np.zeros(config.ob_depth), np.zeros(config.ob_depth)], dtype='uint64'),
-                                   np.array([np.empty(config.ob_depth, dtype='<M8[us]'),
-                                             np.empty(config.ob_depth, dtype='<M8[us]')]),
-                                   np.array([np.empty(config.ob_depth), np.empty(config.ob_depth)], dtype='object'),
-                                   np.array([np.empty(1, dtype='uint64'),
-                                             np.empty(1, dtype='uint64')]))],
-                                 dtype=[('index', 'datetime64[us]'), ('price', 'object'), ('quantity', 'object'),
-                                        ('order_id', 'object'), ('timestamp', 'object'), ('participant', 'object'),
-                                        ('action', 'object')])
+
 
     def process_bid_ask(self, tick, action):
         """
@@ -145,7 +134,15 @@ class Book(object):
         self.trades.appendleft(trade)
         return trade
 
+    @property
     def store_lob_matrix(self):
+        ob_state = np.zeros(1, dtype=[('index', '<M8[us]'), ('side', 'U1'), ('action', 'uint64'),
+                                           ('price', ('float64', [2, config.ob_depth])),
+                                           ('quantity', ('uint64', [2, config.ob_depth])),
+                                           ('order_id', ('uint64', [2, config.ob_depth])),
+                                           ('timestamp', ('<M8[us]', [2, config.ob_depth])),
+                                           ('participant', ('U10', [2, config.ob_depth]))])
+
         if self.bids is not None and len(self.bids) > 0:
             count = 0
             for k, v in self.bids.price_tree.items(reverse=True):
@@ -154,13 +151,14 @@ class Book(object):
                 else:
                     n = v.head_order
                     while n is not None and count <= config.ob_depth - 1:
-                        self.ob_state[0][0] = self.last_timestamp
-                        self.ob_state[0][1][0][count] = k
-                        self.ob_state[0][2][0][count] = n.qty
-                        self.ob_state[0][3][0][count] = n.id_num
-                        self.ob_state[0][4][0][count] = n.timestamp
-                        self.ob_state[0][5][0][count] = n.participant
-                        self.ob_state[0][6][0] = self.action
+                        ob_state[0][0] = self.last_timestamp
+                        ob_state[0][1] = 'B' if self.last_tick.is_bid else 'S'
+                        ob_state[0][2] = self.action
+                        ob_state[0][3][0][count] = k
+                        ob_state[0][4][0][count] = n.qty
+                        ob_state[0][5][0][count] = n.id_num
+                        ob_state[0][6][0][count] = n.timestamp
+                        ob_state[0][7][0][count] = n.participant
                         n = n.next_order
                         count += 1
         if self.asks is not None and len(self.asks) > 0:
@@ -171,16 +169,17 @@ class Book(object):
                 else:
                     n = v.head_order
                     while n is not None and count <= config.ob_depth - 1:
-                        self.ob_state[0][0] = self.last_timestamp
-                        self.ob_state[0][1][1][count] = k
-                        self.ob_state[0][2][1][count] = n.qty
-                        self.ob_state[0][3][1][count] = n.id_num
-                        self.ob_state[0][4][1][count] = n.timestamp
-                        self.ob_state[0][5][1][count] = n.participant
-                        self.ob_state[0][6][1] = self.action
+                        ob_state[0][0] = self.last_timestamp
+                        ob_state[0][1] = 'B' if self.last_tick.is_bid else 'S'
+                        ob_state[0][2] = self.action
+                        ob_state[0][3][1][count] = k
+                        ob_state[0][4][1][count] = n.qty
+                        ob_state[0][5][1][count] = n.id_num
+                        ob_state[0][6][1][count] = n.timestamp
+                        ob_state[0][7][1][count] = n.participant
                         n = n.next_order
                         count += 1
-        return self.ob_state
+        return ob_state
 
     def __str__(self):
         # Efficient string concat
