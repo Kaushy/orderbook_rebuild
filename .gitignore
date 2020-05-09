@@ -1,7 +1,7 @@
 data/input/*
 data/future_input/*
 data/output/*
-data/raw/*
+data/input/raw/*
 .idea/
 __pycache__
 venv/*

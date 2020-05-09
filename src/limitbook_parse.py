@@ -4,22 +4,12 @@ import numpy as np
 import config
 import csv
 import copy
-import errno
 import os
 import pandas as pd
 import pathlib
 import sys
 import src.utils as utils
 from src.lob.book import Book
-
-
-def make_dir(file_name):
-    if not os.path.exists(os.path.dirname(file_name)):
-        try:
-            os.makedirs(os.path.dirname(file_name))
-        except OSError as exc:  # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
 
 
 def split_data_into_exchanges(source_path, destination_path):
@@ -35,7 +25,7 @@ def split_data_into_exchanges(source_path, destination_path):
             df = pd.read_csv(source_full_file)
             for group_name, df in df.groupby(['Ticker', 'Exchange']):
                 file_name = destination_path / str(df['Date'].iloc[0]) / convertTuple(group_name)
-                make_dir(file_name)
+                utils.make_dir(file_name)
                 with open(file_name, "w+") as f:
                     df.to_csv(f, index=False)
 
@@ -72,7 +62,7 @@ def algoseekdata(source, destination_matrix):
                         ob_state_list.append(ob_state)
                     file_name = destination_matrix / pathlib.PurePath(os.path.normpath(data_path)).parent.name / \
                                 os.path.splitext(pathlib.PurePath(data_path).name)[0]
-                    make_dir(file_name)
+                    utils.make_dir(file_name)
                     np.save(file_name, ob_state_list)
                 except IOError:
                     print('Cannot open input file "%s"' % sys.argv[1])
@@ -81,6 +71,7 @@ def algoseekdata(source, destination_matrix):
 
 if __name__ == '__main__':
     # split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
-   #  algoseekdata(config.test_source_exchange, config.test_destination_matrix)
+    #  algoseekdata(config.test_source_exchange, config.test_destination_matrix)
     # You have to split this more exchange specific as well as not all exchanges obey same rules
-   algoseekdata(config.source_exchange, config.destination_matrix)
+    algoseekdata(config.source_spoof_bid, config.destination_spoof_bid)
+    algoseekdata(config.source_spoof_ask, config.destination_spoof_ask)
