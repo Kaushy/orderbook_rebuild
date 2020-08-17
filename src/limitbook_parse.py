@@ -1,38 +1,14 @@
 #!/usr/bin/python
 
 import numpy as np
-import config
+from src import config
 import csv
 import copy
 import os
-import pandas as pd
 import pathlib
 import sys
 import src.utils as utils
 from src.lob.book import Book
-
-
-def split_data_into_exchanges(source_path, destination_path):
-    """
-    Splits the data into different exchanges as currently it is one large exchange file. As groupby preserves order we
-    do not further sort the outcome.
-    Parameters
-    ----------
-    """
-    for subdir, dirs, files in os.walk(source_path):
-        for file in files:
-            source_full_file = os.path.join(subdir, file)
-            df = pd.read_csv(source_full_file)
-            for group_name, df in df.groupby(['Ticker', 'Exchange']):
-                file_name = destination_path / str(df['Date'].iloc[0]) / convertTuple(group_name)
-                utils.make_dir(file_name)
-                with open(file_name, "w+") as f:
-                    df.to_csv(f, index=False)
-
-
-def convertTuple(tup):
-    tup_str = '_'.join(tup)
-    return str(tup_str) + '.csv'
 
 
 def algoseekdata(source, destination_matrix):
@@ -70,8 +46,8 @@ def algoseekdata(source, destination_matrix):
 
 
 if __name__ == '__main__':
-    # split_data_into_exchanges(config.source_algoseek, config.destination_exchange)
-    #  algoseekdata(config.test_source_exchange, config.test_destination_matrix)
-    # You have to split this more exchange specific as well as not all exchanges obey same rules
-    algoseekdata(config.source_spoof_bid, config.destination_spoof_bid)
-    algoseekdata(config.source_spoof_ask, config.destination_spoof_ask)
+      # algoseekdata(config.test_source_exchange, config.test_destination_matrix)
+      # You have to split this more exchange specific as well as not all exchanges obey same rules
+        algoseekdata(config.source_exchange, config.destination_exchange)
+      # algoseekdata(config.source_spoof_bid, config.destination_spoof_bid)
+      # algoseekdata(config.source_spoof_ask, config.destination_spoof_ask)

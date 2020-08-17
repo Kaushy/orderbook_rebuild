@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
-import config
+from src import config
 import numpy as np
-import pickle
 from collections import deque
 from datetime import datetime
 from src.lob.tick import Bid, Ask, Trade
@@ -31,6 +30,8 @@ class Book(object):
         self.last_tick = None
         self.last_timestamp = datetime(1970, 1, 1, 12, 0, 0, 000000)
         self.action = 0
+        self.id_num = 0
+        self.participant = ""
 
 
     def process_bid_ask(self, tick, action):
@@ -54,9 +55,11 @@ class Book(object):
                    'Price', 'Quantity', 'MPID', 'Exchange']
         data = parse_csv(columns, csv)
         bid = Bid(data)
-        if bid.timestamp > self.last_timestamp:
+        if bid.timestamp >= self.last_timestamp:
             self.last_timestamp = bid.timestamp
             self.action = bid.action
+            self.id_num = bid.id_num
+            self.participant = bid.participant
         self.last_tick = bid
         self.process_bid_ask(bid)
         return bid
@@ -71,9 +74,11 @@ class Book(object):
             'Participant': participant
         }
         bid = Bid(data)
-        if bid.timestamp > self.last_timestamp:
+        if bid.timestamp >= self.last_timestamp:
             self.last_timestamp = bid.timestamp
             self.action = bid.action
+            self.id_num = bid.id_num
+            self.participant = bid.participant
         self.last_tick = bid
         self.process_bid_ask(bid, action_words)
         return bid
@@ -83,9 +88,11 @@ class Book(object):
                    'Price', 'Quantity', 'MPID', 'Exchange']
         data = parse_csv(columns, csv)
         ask = Ask(data)
-        if ask.timestamp > self.last_timestamp:
+        if ask.timestamp >= self.last_timestamp:
             self.last_timestamp = ask.timestamp
             self.action = ask.action
+            self.id_num = ask.id_num
+            self.participant = ask.participant
         self.last_tick = ask
         self.process_bid_ask(ask)
         return ask
@@ -100,9 +107,11 @@ class Book(object):
             'Participant': participant
         }
         ask = Ask(data)
-        if ask.timestamp > self.last_timestamp:
+        if ask.timestamp >= self.last_timestamp:
             self.last_timestamp = ask.timestamp
             self.action = ask.action
+            self.id_num = ask.id_num
+            self.participant = ask.participant
         self.last_tick = ask
         self.process_bid_ask(ask, action_words)
         return ask
@@ -113,7 +122,7 @@ class Book(object):
         data = parse_csv(columns, csv)
         data['id_num'] = 0
         trade = Trade(data)
-        if trade.timestamp > self.last_timestamp:
+        if trade.timestamp >= self.last_timestamp:
             self.last_timestamp = trade.timestamp
         self.last_tick = trade
         self.trades.appendleft(trade)
@@ -137,11 +146,12 @@ class Book(object):
     @property
     def store_lob_matrix(self):
         ob_state = np.zeros(1, dtype=[('index', '<M8[us]'), ('side', 'U1'), ('action', 'uint64'),
-                                           ('price', ('float64', [2, config.ob_depth])),
-                                           ('quantity', ('uint64', [2, config.ob_depth])),
-                                           ('order_id', ('uint64', [2, config.ob_depth])),
-                                           ('timestamp', ('<M8[us]', [2, config.ob_depth])),
-                                           ('participant', ('U10', [2, config.ob_depth]))])
+                                      ('curr_orderid', 'uint64'), ('curr_participant', 'U10'),
+                                      ('price', ('float64', [2, config.ob_depth])),
+                                      ('quantity', ('uint64', [2, config.ob_depth])),
+                                      ('order_id', ('uint64', [2, config.ob_depth])),
+                                      ('timestamp', ('<M8[us]', [2, config.ob_depth])),
+                                      ('participant', ('U10', [2, config.ob_depth]))])
 
         if self.bids is not None and len(self.bids) > 0:
             count = 0
@@ -154,11 +164,13 @@ class Book(object):
                         ob_state[0][0] = self.last_timestamp
                         ob_state[0][1] = 'B' if self.last_tick.is_bid else 'S'
                         ob_state[0][2] = self.action
-                        ob_state[0][3][0][count] = k
-                        ob_state[0][4][0][count] = n.qty
-                        ob_state[0][5][0][count] = n.id_num
-                        ob_state[0][6][0][count] = n.timestamp
-                        ob_state[0][7][0][count] = n.participant
+                        ob_state[0][3] = self.id_num
+                        ob_state[0][4] = self.participant
+                        ob_state[0][5][0][count] = k
+                        ob_state[0][6][0][count] = n.qty
+                        ob_state[0][7][0][count] = n.id_num
+                        ob_state[0][8][0][count] = n.timestamp
+                        ob_state[0][9][0][count] = n.participant
                         n = n.next_order
                         count += 1
         if self.asks is not None and len(self.asks) > 0:
@@ -172,11 +184,13 @@ class Book(object):
                         ob_state[0][0] = self.last_timestamp
                         ob_state[0][1] = 'B' if self.last_tick.is_bid else 'S'
                         ob_state[0][2] = self.action
-                        ob_state[0][3][1][count] = k
-                        ob_state[0][4][1][count] = n.qty
-                        ob_state[0][5][1][count] = n.id_num
-                        ob_state[0][6][1][count] = n.timestamp
-                        ob_state[0][7][1][count] = n.participant
+                        ob_state[0][3] = self.id_num
+                        ob_state[0][4] = self.participant
+                        ob_state[0][5][1][count] = k
+                        ob_state[0][6][1][count] = n.qty
+                        ob_state[0][7][1][count] = n.id_num
+                        ob_state[0][8][1][count] = n.timestamp
+                        ob_state[0][9][1][count] = n.participant
                         n = n.next_order
                         count += 1
         return ob_state

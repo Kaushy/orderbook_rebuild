@@ -1,6 +1,6 @@
 # coding=utf-8
 # coding=utf-8
-import config
+from src import config
 import os
 import pandas as pd
 import numpy as np
@@ -28,18 +28,16 @@ def spoofing_imputation(data_original, delete, add, spoof):
 
     """
     data = data_original.copy()
-    deleted_orders = data[data['EventType'] == delete]['OrderNumber']
-    mask = (data['OrderNumber'].isin(deleted_orders)) & (data['EventType'] == add)
-    samples = int(mask.count() / 4)
-    mask_convert_to_neg = mask.sample(samples)
-    mask_convert_to_neg.replace(True, False, inplace=True)
-    mask.update(mask_convert_to_neg)
-    data.loc[:, 'Spoofing'] = np.where(mask, spoof, 'Normal')
+    deletions = data[data['EventType'] == delete]['OrderNumber']
+    count_of_selection = int(deletions.count()/4)
+    deleted_orders = deletions.sample(count_of_selection)
+
+    mask = data['OrderNumber'].isin(deleted_orders) & (data['EventType'] == add)
+    mask_del = data['OrderNumber'].isin(deleted_orders) & (data['EventType'] == delete)
+
+    data.loc[:, 'Spoofing'] = np.where(mask_del, spoof, 'Normal')
     data.loc[:, 'Quantity'] = np.where(mask, np.exp(np.log2(
         data['Quantity'].multiply(np.random.randint(50, 500, mask.shape)))).astype(int), data['Quantity'].values)
-    mask_dampen = data.loc[:, 'Spoofing'] == 'Normal'
-    data.loc[:, 'Quantity'] = np.where(data.loc[:, 'Spoofing'] == 'Normal', np.random.randint(1, 1500, mask_dampen.size),
-                                               data['Quantity'].values)
     return data
 
 
@@ -65,6 +63,7 @@ def store_spoof_data(data, del_action, add_action, spoof_col_name, source):
 for subdir, dirs, files in os.walk(config.source_exchange):
     for file in files:
         data_path = os.path.join(subdir, file)
+        print(data_path)
         data = pd.read_csv(data_path)
         store_spoof_data(data, 'DELETE BID', 'ADD BID', 'Spoofing_Bid', config.source_spoof_bid)
         store_spoof_data(data, 'DELETE ASK', 'ADD ASK', 'Spoofing_Ask', config.source_spoof_ask)
