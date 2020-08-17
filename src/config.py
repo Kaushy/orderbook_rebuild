@@ -1,12 +1,12 @@
 from pathlib import Path
 
 # SOURCE DATA
-source_algoseek = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/input/raw/')
+source_exchange = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/input/raw/')
 source_spoof_bid = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/input/manipulated/spoof/bid/')
 source_spoof_ask = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/input/manipulated/spoof/ask/')
 
 # DESTINATION
-destination_algoseek = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/output/raw/')
+destination_exchange = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/output/raw/')
 destination_spoof_bid = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/output/manipulated/spoof/bid/')
 destination_spoof_ask = Path('/Users/kaushalyakularatnam/Projects/orderbook_rebuild/data/output/manipulated/spoof/ask/')
 

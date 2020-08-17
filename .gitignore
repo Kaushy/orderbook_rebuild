@@ -1,5 +1,6 @@
 data/input/raw/*
 data/input/manipulated/*
+data/input/raw/.DS_Store
 data/input/.DS_Store
 data/output/raw/*
 data/output/manipulated/*
