@@ -50,6 +50,70 @@ class Book(object):
             if tree.order_exists(tick.id_num):
                 tree.update_order(tick)
 
+    def price_action(self, row, instruction, price, side):
+        action = 0
+        price = float(price)
+        if side == 1:
+            sorted_keys = sorted(self.bids.price_map.keys(), reverse=True)
+            if instruction == 'FILL BID':
+                action = 19
+            elif instruction == 'EXECUTE BID':
+                action  = 21
+            elif instruction == 'DELETE BID':
+                action = 23
+            elif instruction == 'CANCEL BID':
+                action = 25
+            else:
+                if len(sorted_keys) == 0 or price > sorted_keys[0]:
+                    action = 1
+                elif len(sorted_keys) >= 1 and price == sorted_keys[0]:
+                    action = 3
+                elif len(sorted_keys) >= 2 and sorted_keys[1] < price <= sorted_keys[0]:
+                    action = 5
+                elif len(sorted_keys) >= 3 and sorted_keys[2] < price <= sorted_keys[1]:
+                    action = 7
+                elif len(sorted_keys) >= 4 and sorted_keys[3] < price <= sorted_keys[2]:
+                    action = 9
+                elif len(sorted_keys) >= 5 and sorted_keys[4] < price <= sorted_keys[3]:
+                    action = 11
+                elif len(sorted_keys) >= 6 and sorted_keys[5] < price <= sorted_keys[4]:
+                    action = 13
+                elif len(sorted_keys) <= 10 or (len(sorted_keys) > 10 and (sorted_keys[10] < price <= sorted_keys[5])):
+                    action = 15
+                else:
+                    action = 17
+        else:
+            sorted_keys = sorted(self.asks.price_map.keys())
+            if instruction == 'FILL ASK':
+                action = 20
+            elif instruction == 'EXECUTE ASK':
+                action = 22
+            elif instruction == 'DELETE ASK':
+                action = 24
+            elif instruction == 'CANCEL ASK':
+                action = 26
+            else:
+                if len(sorted_keys) == 0 or price < sorted_keys[0]:
+                    action = 2
+                elif len(sorted_keys) >= 1 and price == sorted_keys[0]:
+                    action = 4
+                elif len(sorted_keys) >= 2 and sorted_keys[1] > price >= sorted_keys[0]:
+                    action = 6
+                elif len(sorted_keys) >= 3 and sorted_keys[2] > price >= sorted_keys[1]:
+                    action = 8
+                elif len(sorted_keys) >= 4 and sorted_keys[3] > price >= sorted_keys[2]:
+                    action = 10
+                elif len(sorted_keys) >= 5 and sorted_keys[4] > price >= sorted_keys[3]:
+                    action = 12
+                elif len(sorted_keys) >= 6 and sorted_keys[5] > price >= sorted_keys[4]:
+                    action = 14
+                elif len(sorted_keys) <= 10 or (len(sorted_keys) > 10 and (sorted_keys[10] > price >= sorted_keys[5])):
+                    action = 16
+                else:
+                    action = 18
+        return action
+
+
     def bid_as(self, csv):
         columns = ['Date', 'Timestamp', 'OrderNumber', 'EventType', 'Ticker',
                    'Price', 'Quantity', 'MPID', 'Exchange']
@@ -155,6 +219,7 @@ class Book(object):
 
         if self.bids is not None and len(self.bids) > 0:
             count = 0
+            x = 0
             for k, v in self.bids.price_tree.items(reverse=True):
                 if v.head_order is None:
                     return
@@ -193,7 +258,7 @@ class Book(object):
                         ob_state[0][9][1][count] = n.participant
                         n = n.next_order
                         count += 1
-        return ob_state
+        return ob_state, self.action
 
     def __str__(self):
         # Efficient string concat

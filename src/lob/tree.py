@@ -48,7 +48,7 @@ class Tree(object):
                 self.min_price = None
 
     def price_exists(self, price):
-        return price in self.price_map
+        return float(price) in self.price_map
 
     def order_exists(self, id_num):
         return id_num in self.order_map
