@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
-from src import config
+import config
 import numpy as np
 from collections import deque
 from datetime import datetime
-from src.lob.tick import Bid, Ask, Trade
-from src.lob.tree import Tree
+from lob.tick import Bid, Ask, Trade
+from lob.tree import Tree
 from six.moves import cStringIO as StringIO
 
 

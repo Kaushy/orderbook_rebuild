@@ -1,14 +1,17 @@
 #!/usr/bin/python
 
+import sys
+sys.path.append(".")
+
 import numpy as np
-from src import config
+import config
 import csv
 import copy
 import os
 import pathlib
 import sys
 import src.utils as utils
-from src.lob.book import Book
+from lob.book import Book
 
 
 def algoseekdata(source, destination_matrix):
