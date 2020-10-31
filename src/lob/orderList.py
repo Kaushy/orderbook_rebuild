@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from src.lob.order import Order
+from lob.order import Order
 
 
 class OrderList(object):
