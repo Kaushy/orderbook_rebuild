@@ -258,7 +258,7 @@ class Book(object):
                         ob_state[0][9][1][count] = n.participant
                         n = n.next_order
                         count += 1
-        return ob_state, self.action
+        return ob_state
 
     def __str__(self):
         # Efficient string concat

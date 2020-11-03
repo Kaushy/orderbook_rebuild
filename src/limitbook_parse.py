@@ -10,7 +10,7 @@ import copy
 import os
 import pathlib
 import sys
-import src.utils as utils
+import utils 
 from lob.book import Book
 
 
@@ -61,6 +61,6 @@ def algoseekdata(source, destination_matrix):
 if __name__ == '__main__':
       # algoseekdata(config.test_source_exchange, config.test_destination_matrix)
       # You have to split this more exchange specific as well as not all exchanges obey same rules
-        algoseekdata(config.source_exchange, config.destination_exchange)
+        algoseekdata(config.source, config.destination)
       # algoseekdata(config.source_spoof_bid, config.destination_spoof_bid)
       # algoseekdata(config.source_spoof_ask, config.destination_spoof_ask)
