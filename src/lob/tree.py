@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from bintrees import FastRBTree
-
+from collections import defaultdict
 from lob.orderList import OrderList
 from lob.order import Order
 
@@ -9,7 +9,7 @@ class Tree(object):
     def __init__(self):
         self.price_tree = FastRBTree()
         self.volume = 0
-        self.price_map = {}  # Map from price -> order_list object
+        self.price_map = defaultdict(list)  # Map from price -> order_list object
         self.order_map = {}  # Order ID to Order object
         self.min_price = None
         self.max_price = None

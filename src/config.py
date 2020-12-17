@@ -29,8 +29,6 @@ environment = 1
 source, destination, test_source, test_dest = find_path(environment)
 
 
-    
-
 add = ['ADD BID', 'ADD ASK']
 delete = ['DELETE BID', 'DELETE ASK', 'FILL BID', 'FILL ASK']
 update = ['EXECUTE BID', 'EXECUTE ASK', 'CANCEL BID', 'CANCEL ASK']
@@ -39,4 +37,4 @@ update = ['EXECUTE BID', 'EXECUTE ASK', 'CANCEL BID', 'CANCEL ASK']
 algoseek_dict = {'ADD BID': 1, 'ADD ASK': 1, 'DELETE BID': 2, 'DELETE ASK': 2, 'FILL BID': 3, 'FILL ASK': 3, \
                  'EXECUTE BID': 4, 'EXECUTE ASK': 4, 'CANCEL BID': 5, 'CANCEL ASK': 5}
 
-ob_depth = 30
+ob_depth = 3
