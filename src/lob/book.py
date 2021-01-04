@@ -75,35 +75,37 @@ class Book(object):
         curr_vol = (int(curr_vol) / total_vol)
         if curr_vol < 0.25:
             if isreversed:
-                return 25
-            else:
-                return 26
-        elif curr_vol >= 0.25 and curr_vol < 0.5:
-            if isreversed:
-                return 27
-            else:
-                return 28
-        elif curr_vol >= 0.5 and curr_vol < 0.75:
-            if isreversed:
                 return 29
-            else:                                    
+            else:
                 return 30
-        elif curr_vol >= 0.75 and curr_vol < 1:
+        elif curr_vol >= 0.25 and curr_vol < 0.5:
             if isreversed:
                 return 31
             else:
                 return 32
-        else:
+        elif curr_vol >= 0.5 and curr_vol < 0.75:
             if isreversed:
                 return 33
-            else:
+            else:                                    
                 return 34
+        elif curr_vol >= 0.75 and curr_vol < 1:
+            if isreversed:
+                return 35
+            else:
+                return 36
+        else:
+            if isreversed:
+                return 37
+            else:
+                return 38
 
 
     def action_multi_task(self, row, instruction, price, side, volume):
-        """action in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 
-           price_level in [0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] where 0 is default when no price change
-           liquidity in [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 50] where 50 is default when no liquidity added
+        """
+           side in [1,2] 
+           action in [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
+           price_level in [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] where 13, 20 is default when no price change of even deletions
+           liquidity in [27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40] where 27, 40 is default when no price change of even deletion
 
         Args:
             row ([type]): [description]
@@ -117,106 +119,108 @@ class Book(object):
         """
         action = 0
         price = float(price)
-        liquidity = 50
-        price_level = 0
 
         if side == 1:
+            liquidity = 27
+            price_level = 13
             sorted_keys = sorted(self.bids.price_map.keys(), reverse=True)
             last_idx = len(sorted_keys) - 1
 
             if instruction == 'FILL BID':
-                action = 1
-            elif instruction == 'EXECUTE BID':
-                action  = 2
-            elif instruction == 'DELETE BID':
                 action = 3
+            elif instruction == 'EXECUTE BID':
+                action  = 4
+            elif instruction == 'DELETE BID':
+                action = 5
             elif instruction == 'CANCEL BID':
-                action = 4
+                action = 6
             elif instruction == 'ADD BID':
-                action  = 5
+                action  = 7
             
             if instruction == 'ADD BID':
                 # Improving BB, Joining BB, Top 5 Levels, Top 10 levels, Top 20 Levels, All Else  
                 # In the case of 5 level Either there are more than 5 levels and setting within 5 levels or less than 5 levels and setting price within this
                 if last_idx == -1 or price > sorted_keys[0]:
-                    price_level = 11
+                    price_level = 14
                     if last_idx == -1:
-                        liquidity = 23
+                        liquidity = 28
                     else:
                         liquidity = self.calc_volume_in_boundary(True, float('inf'), sorted_keys[0], volume)
                 elif last_idx >= 0 and price == sorted_keys[0]:
-                    price_level = 12
+                    price_level = 15
                     liquidity = self.calc_volume_in_boundary(True, price, sorted_keys[0], volume)
                 elif (last_idx >= 4 and sorted_keys[0] > price >= sorted_keys[4]) or (last_idx >= 0 and last_idx < 4 and price < sorted_keys[0]):
-                    price_level = 13
+                    price_level = 16
                     if last_idx >= 4:
                         liquidity = self.calc_volume_in_boundary(True, sorted_keys[0], sorted_keys[4], volume)
                     else:
                         liquidity = self.calc_volume_in_boundary(True, sorted_keys[0], sorted_keys[last_idx], volume)
                 elif (last_idx >= 9 and sorted_keys[4] > price >= sorted_keys[9]) or (last_idx >= 4 and last_idx < 9 and price < sorted_keys[4]):
-                    price_level = 14
+                    price_level = 17
                     if last_idx >= 9:
                         liquidity = self.calc_volume_in_boundary(True, sorted_keys[4], sorted_keys[9], volume)
                     else:
                         liquidity = self.calc_volume_in_boundary(True, sorted_keys[4], sorted_keys[last_idx], volume)
                 elif (last_idx >= 19 and sorted_keys[9] > price >= sorted_keys[19]) or (last_idx >= 9 and last_idx < 19 and price < sorted_keys[9]):
-                    price_level = 15
+                    price_level = 18
                     if last_idx >= 19:
                         liquidity = self.calc_volume_in_boundary(True, sorted_keys[9], sorted_keys[19], volume)
                     else:
                         liquidity = self.calc_volume_in_boundary(True, sorted_keys[9], sorted_keys[last_idx], volume)   
                 else:
-                    price_level = 16
+                    price_level = 19
                     liquidity = self.calc_volume_in_boundary(True, sorted_keys[19], 0, volume)                                
         else:
+            liquidity = 40
+            price_level = 20
             sorted_keys = sorted(self.bids.price_map.keys())
             last_idx = len(sorted_keys) - 1
             
             if instruction == 'FILL ASK':          
-                action = 6
-            elif instruction == 'EXECUTE ASK':
-                action  = 7
-            elif instruction == 'DELETE ASK':
                 action = 8
+            elif instruction == 'EXECUTE ASK':
+                action  = 9
+            elif instruction == 'DELETE ASK':
+                action = 10
             elif instruction == 'CANCEL ASK':
-                action = 9
+                action = 11
             elif instruction == 'ADD ASK':
-                action  = 10
+                action  = 12
             
             if instruction == 'ADD ASK':
                 # Improving BB, Joining BB, Top 5 Levels, Top 10 levels, Top 20 Levels, All Else  
                 # In the case of 5 level Either there are more than 5 levels and setting within 5 levels or less than 5 levels and setting price within this
                 if last_idx == -1 or (price < sorted_keys[0]):                        
-                    price_level = 17
+                    price_level = 21
                     if last_idx == -1:
-                        liquidity = 24
+                        liquidity = 39
                     else:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[0], 0, volume)
                 elif last_idx >= 0 and price == sorted_keys[0]:
-                    price_level = 18
+                    price_level = 22
                     liquidity = self.calc_volume_in_boundary(False, sorted_keys[0], price, volume)
                 elif (last_idx >= 4 and sorted_keys[0] < price <= sorted_keys[4]) or (last_idx >= 0 and last_idx < 4 and price > sorted_keys[0]):
-                    price_level = 19
+                    price_level = 23
                     if last_idx >= 4:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[4], sorted_keys[0], volume)
                     else:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[last_idx], sorted_keys[0], volume)
                 elif (last_idx >= 9 and sorted_keys[4] < price <= sorted_keys[9]) or (last_idx >= 4 and last_idx < 9 and price > sorted_keys[4]):
-                    price_level = 20
+                    price_level = 24
                     if last_idx >= 9:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[9], sorted_keys[4], volume)
                     else:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[last_idx], sorted_keys[4], volume)
                 elif (last_idx >= 19 and sorted_keys[9] < price <= sorted_keys[19]) or (last_idx >= 9 and last_idx < 19 and price > sorted_keys[9]):
-                    price_level = 21
+                    price_level = 25
                     if last_idx >= 19:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[19], sorted_keys[9], volume)
                     else:
                         liquidity = self.calc_volume_in_boundary(False, sorted_keys[last_idx], sorted_keys[9], volume)
                 else:
-                    price_level = 22
+                    price_level = 26
                     liquidity = self.calc_volume_in_boundary(False,  float('inf'), sorted_keys[19], volume)
-        return [side, action, price_level, liquidity]
+        return [side, action, price_level, liquidity, price, volume]
 
 
 
