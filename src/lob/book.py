@@ -173,7 +173,7 @@ class Book(object):
         else:
             liquidity = 40
             price_level = 20
-            sorted_keys = sorted(self.bids.price_map.keys())
+            sorted_keys = sorted(self.asks.price_map.keys())
             last_idx = len(sorted_keys) - 1
             
             if instruction == 'FILL ASK':          
@@ -220,6 +220,7 @@ class Book(object):
                 else:
                     price_level = 26
                     liquidity = self.calc_volume_in_boundary(False,  float('inf'), sorted_keys[19], volume)
+        print([price_level, price, volume, sorted_keys])
         return [side, action, price_level, liquidity, price, volume]
 
 

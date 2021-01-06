@@ -67,4 +67,4 @@ def algoseekdata(source, destination_matrix):
 
 
 if __name__ == '__main__':
-        algoseekdata(config.source, config.destination)
+        algoseekdata(config.test_source, config.test_dest)
